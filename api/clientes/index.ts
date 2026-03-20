@@ -1,50 +1,53 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
 import { handleClientesCollection } from "../../server/clientes-api";
+import {
+  createNodeRequestFromWebRequest,
+  createNodeResponseCapture,
+} from "./_web-response-bridge";
 
 export const config = {
   runtime: "nodejs",
 };
 
-function sendJsonError(
-  res: ServerResponse,
-  statusCode: number,
-  error: string,
-  detail: string
-) {
-  res.statusCode = statusCode;
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.end(JSON.stringify({ error, detail }));
-}
-
-export default async function handler(
-  req: IncomingMessage & { body?: unknown },
-  res: ServerResponse
-) {
+export default async function handler(request: Request) {
   console.info("[api/clientes/index] handler:start", {
-    method: req.method,
-    url: req.url,
+    method: request.method,
+    url: request.url,
   });
 
+  const nodeRequest = await createNodeRequestFromWebRequest(request);
+  const nodeResponse = createNodeResponseCapture();
+
   try {
-    await handleClientesCollection(req, res);
+    await handleClientesCollection(nodeRequest, nodeResponse.nodeResponse);
     console.info("[api/clientes/index] handler:done", {
-      method: req.method,
-      url: req.url,
-      statusCode: res.statusCode,
+      method: nodeRequest.method,
+      url: nodeRequest.url,
+      statusCode: nodeResponse.statusCode,
     });
+    return nodeResponse.toResponse();
   } catch (error) {
     const detail =
       error instanceof Error ? error.message : "Error desconocido";
 
     console.error("[api/clientes/index] handler:error", {
-      method: req.method,
-      url: req.url,
+      method: nodeRequest.method,
+      url: nodeRequest.url,
       detail,
       ...(error instanceof Error && error.stack ? { stack: error.stack } : {}),
     });
 
-    if (!res.headersSent) {
-      sendJsonError(res, 500, "Error interno en /api/clientes", detail);
+    if (!nodeResponse.headersSent) {
+      return new Response(
+        JSON.stringify({ error: "Error interno en /api/clientes", detail }),
+        {
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+          },
+          status: 500,
+        }
+      );
     }
+
+    return nodeResponse.toResponse();
   }
 }

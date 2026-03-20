@@ -1,78 +1,85 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
 import {
   getClienteIdFromRequestUrl,
   handleClienteItem,
 } from "../../server/clientes-api";
+import {
+  createNodeRequestFromWebRequest,
+  createNodeResponseCapture,
+} from "./_web-response-bridge";
 
 export const config = {
   runtime: "nodejs",
 };
 
-function sendJsonError(
-  res: ServerResponse,
-  statusCode: number,
-  error: string,
-  detail: string
-) {
-  res.statusCode = statusCode;
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.end(JSON.stringify({ error, detail }));
-}
-
-export default async function handler(
-  req: IncomingMessage & { body?: unknown },
-  res: ServerResponse
-) {
+export default async function handler(request: Request) {
   console.info("[api/clientes/[id]] handler:start", {
-    method: req.method,
-    url: req.url,
+    method: request.method,
+    url: request.url,
   });
 
-  const id = getClienteIdFromRequestUrl(req.url);
+  const nodeRequest = await createNodeRequestFromWebRequest(request);
+  const nodeResponse = createNodeResponseCapture();
+  const id = getClienteIdFromRequestUrl(nodeRequest.url);
 
   console.info("[api/clientes/[id]] handler:parsed-id", {
-    method: req.method,
-    url: req.url,
+    method: nodeRequest.method,
+    url: nodeRequest.url,
     id,
   });
 
   if (!id) {
     console.error("[api/clientes/[id]] handler:invalid-id", {
-      method: req.method,
-      url: req.url,
+      method: nodeRequest.method,
+      url: nodeRequest.url,
     });
 
-    sendJsonError(
-      res,
-      400,
-      "Cliente invalido",
-      "No se pudo extraer un id valido desde la URL"
+    return new Response(
+      JSON.stringify({
+        error: "Cliente invalido",
+        detail: "No se pudo extraer un id valido desde la URL",
+      }),
+      {
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+        },
+        status: 400,
+      }
     );
-    return;
   }
 
   try {
-    await handleClienteItem(req, res, id);
+    await handleClienteItem(nodeRequest, nodeResponse.nodeResponse, id);
     console.info("[api/clientes/[id]] handler:done", {
-      method: req.method,
-      url: req.url,
+      method: nodeRequest.method,
+      url: nodeRequest.url,
       id,
-      statusCode: res.statusCode,
+      statusCode: nodeResponse.statusCode,
     });
+    return nodeResponse.toResponse();
   } catch (error) {
     const detail =
       error instanceof Error ? error.message : "Error desconocido";
 
     console.error("[api/clientes/[id]] handler:error", {
-      method: req.method,
-      url: req.url,
+      method: nodeRequest.method,
+      url: nodeRequest.url,
       id,
       detail,
       ...(error instanceof Error && error.stack ? { stack: error.stack } : {}),
     });
 
-    if (!res.headersSent) {
-      sendJsonError(res, 500, "Error interno en /api/clientes/[id]", detail);
+    if (!nodeResponse.headersSent) {
+      return new Response(
+        JSON.stringify({ error: "Error interno en /api/clientes/[id]", detail }),
+        {
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+          },
+          status: 500,
+        }
+      );
     }
+
+    return nodeResponse.toResponse();
   }
 }
