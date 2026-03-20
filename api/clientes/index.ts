@@ -1,8 +1,8 @@
-import { handleClientesCollection } from "../../server/clientes-api";
+import { handleClientesCollection } from "../../server/clientes-api.js";
 import {
   createNodeRequestFromWebRequest,
   createNodeResponseCapture,
-} from "./_web-response-bridge";
+} from "./_web-response-bridge.js";
 
 export const config = {
   runtime: "nodejs",

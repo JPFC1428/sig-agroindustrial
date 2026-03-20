@@ -1,11 +1,11 @@
 import {
   getClienteIdFromRequestUrl,
   handleClienteItem,
-} from "../../server/clientes-api";
+} from "../../server/clientes-api.js";
 import {
   createNodeRequestFromWebRequest,
   createNodeResponseCapture,
-} from "./_web-response-bridge";
+} from "./_web-response-bridge.js";
 
 export const config = {
   runtime: "nodejs",
