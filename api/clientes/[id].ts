@@ -5,13 +5,14 @@ import {
 import {
   createNodeRequestFromWebRequest,
   createNodeResponseCapture,
+  type RuntimeRequest,
 } from "./_web-response-bridge.js";
 
 export const config = {
   runtime: "nodejs",
 };
 
-export default async function handler(request: Request) {
+export default async function handler(request: RuntimeRequest) {
   console.info("[api/clientes/[id]] handler:start", {
     method: request.method,
     url: request.url,

@@ -1,8 +1,14 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
+import type {
+  IncomingHttpHeaders,
+  IncomingMessage,
+  ServerResponse,
+} from "node:http";
 
 type NodeRequest = IncomingMessage & {
   body?: unknown;
 };
+
+export type RuntimeRequest = Request | NodeRequest;
 
 type NodeResponseCapture = {
   readonly headersSent: boolean;
@@ -11,14 +17,101 @@ type NodeResponseCapture = {
   toResponse(): Response;
 };
 
+const METHODS_WITHOUT_BODY = new Set(["DELETE", "GET", "HEAD"]);
+
+function shouldReadBody(method?: string) {
+  return !METHODS_WITHOUT_BODY.has((method ?? "").toUpperCase());
+}
+
+function isWebRequest(request: RuntimeRequest): request is Request {
+  return typeof (request as Request).text === "function";
+}
+
+function isAsyncIterableRequest(
+  request: RuntimeRequest
+): request is NodeRequest & AsyncIterable<unknown> {
+  return (
+    typeof (request as AsyncIterable<unknown>)[Symbol.asyncIterator] ===
+    "function"
+  );
+}
+
+function hasBodyProperty(
+  request: NodeRequest
+): request is NodeRequest & { body: unknown } {
+  return "body" in request;
+}
+
+function normalizeBodyValue(body: unknown) {
+  if (body === undefined || body === null) {
+    return "";
+  }
+
+  if (
+    typeof body === "string" ||
+    Buffer.isBuffer(body) ||
+    typeof body === "object"
+  ) {
+    return body;
+  }
+
+  return JSON.stringify(body);
+}
+
+function getRequestHeaders(
+  request: RuntimeRequest
+): IncomingHttpHeaders | Record<string, string> {
+  if (isWebRequest(request)) {
+    return Object.fromEntries(request.headers.entries());
+  }
+
+  return request.headers ?? {};
+}
+
+async function readRequestBody(request: RuntimeRequest): Promise<unknown> {
+  if (!shouldReadBody(request.method)) {
+    return undefined;
+  }
+
+  if (isWebRequest(request)) {
+    return await request.text();
+  }
+
+  if (hasBodyProperty(request)) {
+    return normalizeBodyValue(request.body);
+  }
+
+  if (!isAsyncIterableRequest(request)) {
+    return "";
+  }
+
+  const chunks: Buffer[] = [];
+
+  for await (const chunk of request) {
+    if (Buffer.isBuffer(chunk)) {
+      chunks.push(chunk);
+      continue;
+    }
+
+    if (chunk instanceof Uint8Array) {
+      chunks.push(Buffer.from(chunk));
+      continue;
+    }
+
+    chunks.push(Buffer.from(String(chunk)));
+  }
+
+  return chunks.length > 0 ? Buffer.concat(chunks) : Buffer.alloc(0);
+}
+
 export async function createNodeRequestFromWebRequest(
-  request: Request
+  request: RuntimeRequest
 ): Promise<NodeRequest> {
-  const body = await request.text();
+  const body = await readRequestBody(request);
 
   return {
     body,
-    headers: Object.fromEntries(request.headers.entries()),
+    headers: getRequestHeaders(request),
     method: request.method,
     url: request.url,
   } as NodeRequest;
