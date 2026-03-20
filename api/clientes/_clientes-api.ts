@@ -30,6 +30,8 @@ type NodeRequest = IncomingMessage & {
   body?: unknown;
 };
 
+type ConnectNext = (error?: unknown) => void;
+
 type ClienteRow = {
   id: string;
   nombre: string;
@@ -820,4 +822,24 @@ export async function handleClienteItem(
       detail
     );
   }
+}
+
+export function createClientesDevMiddleware() {
+  return (req: NodeRequest, res: ServerResponse, next: ConnectNext) => {
+    const pathname = getPathname(req.url);
+
+    if (pathname === "/api/clientes" || pathname === "/api/clientes/") {
+      void handleClientesCollection(req, res).catch(next);
+      return;
+    }
+
+    const clienteId = getClienteIdFromRequestUrl(req.url);
+
+    if (clienteId) {
+      void handleClienteItem(req, res, clienteId).catch(next);
+      return;
+    }
+
+    next();
+  };
 }

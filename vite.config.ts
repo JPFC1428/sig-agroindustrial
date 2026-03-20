@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { defineConfig, loadEnv, type Plugin, type ViteDevServer } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
-import { createClientesDevMiddleware } from "./server/clientes-api";
+import { createClientesDevMiddleware } from "./api/clientes/_clientes-api.ts";
 
 // =============================================================================
 // Manus Debug Collector - Vite Plugin
