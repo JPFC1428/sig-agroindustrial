@@ -1,4 +1,4 @@
-import { handleClientesCollection } from "../../server/clientes-api.js";
+import { handleClientesCollection } from "./_clientes-api.js";
 import {
   createNodeRequestFromWebRequest,
   createNodeResponseCapture,

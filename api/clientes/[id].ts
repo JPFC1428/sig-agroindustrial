@@ -1,7 +1,7 @@
 import {
   getClienteIdFromRequestUrl,
   handleClienteItem,
-} from "../../server/clientes-api.js";
+} from "./_clientes-api.js";
 import {
   createNodeRequestFromWebRequest,
   createNodeResponseCapture,
