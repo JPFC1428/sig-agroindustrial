@@ -23,7 +23,15 @@ function shouldReadBody(method?: string) {
   return !METHODS_WITHOUT_BODY.has((method ?? "").toUpperCase());
 }
 
-function isWebRequest(request: RuntimeRequest): request is Request {
+function hasHeadersEntries(
+  request: RuntimeRequest
+): request is RuntimeRequest & { headers: Headers } {
+  return typeof (request as { headers?: Headers }).headers?.entries === "function";
+}
+
+function hasRequestText(
+  request: RuntimeRequest
+): request is RuntimeRequest & Pick<Request, "text"> {
   return typeof (request as Request).text === "function";
 }
 
@@ -42,49 +50,37 @@ function hasBodyProperty(
   return "body" in request;
 }
 
-function normalizeBodyValue(body: unknown) {
-  if (body === undefined || body === null) {
-    return "";
+function isPlainObject(body: unknown): body is Record<string, unknown> {
+  if (!body || typeof body !== "object") {
+    return false;
   }
 
-  if (
-    typeof body === "string" ||
-    Buffer.isBuffer(body) ||
-    typeof body === "object"
-  ) {
-    return body;
-  }
-
-  return JSON.stringify(body);
+  const prototype = Object.getPrototypeOf(body);
+  return prototype === Object.prototype || prototype === null;
 }
 
 function getRequestHeaders(
   request: RuntimeRequest
 ): IncomingHttpHeaders | Record<string, string> {
-  if (isWebRequest(request)) {
+  if (hasHeadersEntries(request)) {
     return Object.fromEntries(request.headers.entries());
   }
 
-  return request.headers ?? {};
+  return (request as NodeRequest).headers ?? {};
 }
 
-async function readRequestBody(request: RuntimeRequest): Promise<unknown> {
-  if (!shouldReadBody(request.method)) {
-    return undefined;
-  }
+function isNodeStreamRequest(
+  request: RuntimeRequest
+): request is NodeRequest & {
+  on: IncomingMessage["on"];
+  off?: IncomingMessage["off"];
+} {
+  return typeof (request as IncomingMessage).on === "function";
+}
 
-  if (isWebRequest(request)) {
-    return await request.text();
-  }
-
-  if (hasBodyProperty(request)) {
-    return normalizeBodyValue(request.body);
-  }
-
-  if (!isAsyncIterableRequest(request)) {
-    return "";
-  }
-
+async function readAsyncIterableBody(
+  request: AsyncIterable<unknown>
+): Promise<string> {
   const chunks: Buffer[] = [];
 
   for await (const chunk of request) {
@@ -101,13 +97,102 @@ async function readRequestBody(request: RuntimeRequest): Promise<unknown> {
     chunks.push(Buffer.from(String(chunk)));
   }
 
-  return chunks.length > 0 ? Buffer.concat(chunks) : Buffer.alloc(0);
+  return chunks.length > 0 ? Buffer.concat(chunks).toString("utf-8") : "";
+}
+
+function readNodeStreamBody(
+  request: NodeRequest & {
+    on: IncomingMessage["on"];
+    off?: IncomingMessage["off"];
+  }
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+
+    const cleanup = () => {
+      if (typeof request.off === "function") {
+        request.off("data", handleData);
+        request.off("end", handleEnd);
+        request.off("error", handleError);
+      }
+    };
+
+    const handleData = (chunk: unknown) => {
+      if (Buffer.isBuffer(chunk)) {
+        chunks.push(chunk);
+        return;
+      }
+
+      if (chunk instanceof Uint8Array) {
+        chunks.push(Buffer.from(chunk));
+        return;
+      }
+
+      chunks.push(Buffer.from(String(chunk)));
+    };
+
+    const handleEnd = () => {
+      cleanup();
+      resolve(chunks.length > 0 ? Buffer.concat(chunks).toString("utf-8") : "");
+    };
+
+    const handleError = (error: Error) => {
+      cleanup();
+      reject(error);
+    };
+
+    request.on("data", handleData);
+    request.on("end", handleEnd);
+    request.on("error", handleError);
+  });
+}
+
+async function readBodySafe(request: RuntimeRequest): Promise<string> {
+  if (!shouldReadBody(request.method)) {
+    return "";
+  }
+
+  if (hasRequestText(request)) {
+    return await request.text();
+  }
+
+  if (hasBodyProperty(request)) {
+    if (typeof request.body === "string") {
+      return request.body;
+    }
+
+    if (Buffer.isBuffer(request.body)) {
+      return request.body.toString("utf-8");
+    }
+
+    if (request.body instanceof Uint8Array) {
+      return Buffer.from(request.body).toString("utf-8");
+    }
+
+    if (isPlainObject(request.body)) {
+      return JSON.stringify(request.body);
+    }
+
+    if (request.body === undefined || request.body === null) {
+      return "";
+    }
+  }
+
+  if (isNodeStreamRequest(request)) {
+    return await readNodeStreamBody(request);
+  }
+
+  if (isAsyncIterableRequest(request)) {
+    return await readAsyncIterableBody(request);
+  }
+
+  return "";
 }
 
 export async function createNodeRequestFromWebRequest(
   request: RuntimeRequest
 ): Promise<NodeRequest> {
-  const body = await readRequestBody(request);
+  const body = await readBodySafe(request);
 
   return {
     body,
