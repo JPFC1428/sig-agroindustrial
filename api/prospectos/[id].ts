@@ -6,7 +6,7 @@ import {
   createNodeRequestFromWebRequest,
   createNodeResponseCapture,
   type RuntimeRequest,
-} from "../clientes/_web-response-bridge.js";
+} from "./_web-response-bridge.js";
 
 export const config = {
   runtime: "nodejs",
@@ -86,3 +86,10 @@ export default async function handler(request: RuntimeRequest) {
     return nodeResponse.toResponse();
   }
 }
+
+export const GET = handler;
+export const POST = handler;
+export const PUT = handler;
+export const PATCH = handler;
+export const DELETE = handler;
+export const OPTIONS = handler;
