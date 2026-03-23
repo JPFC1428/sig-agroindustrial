@@ -1,0 +1,9 @@
+.git
+.gitignore
+.manus-logs
+dist
+dist-server
+node_modules
+*.log
+*.png
+.tmp-*

@@ -5,9 +5,12 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite --host",
+    "dev:api": "tsx server/http.ts",
     "build": "vite build",
+    "build:api": "tsc -p tsconfig.server.json",
     "preview": "vite preview --host",
-    "check": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
+    "start:api": "node dist-server/server/http.js",
+    "check": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.server.json",
     "format": "prettier --write ."
   },
   "dependencies": {

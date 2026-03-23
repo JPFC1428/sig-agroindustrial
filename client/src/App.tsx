@@ -8,6 +8,8 @@ import Dashboard from "./pages/Dashboard";
 import Clientes from "./pages/Clientes";
 import ClienteDetalle from "./pages/ClienteDetalle";
 import ClienteNuevo from "./pages/ClienteNuevo";
+import ProspectoDetalle from "./pages/ProspectoDetalle";
+import ProspectoNuevo from "./pages/ProspectoNuevo";
 import Prospectos from "./pages/Prospectos";
 import Visitas from "./pages/Visitas";
 import Cotizaciones from "./pages/Cotizaciones";
@@ -23,6 +25,9 @@ function Router() {
       <Route path={"/clientes/:id/editar"} component={ClienteNuevo} />
       <Route path={"/clientes/:id"} component={ClienteDetalle} />
       <Route path={"/prospectos"} component={Prospectos} />
+      <Route path={"/prospectos/nuevo"} component={ProspectoNuevo} />
+      <Route path={"/prospectos/:id/editar"} component={ProspectoNuevo} />
+      <Route path={"/prospectos/:id"} component={ProspectoDetalle} />
       <Route path={"/visitas"} component={Visitas} />
       <Route path={"/cotizaciones"} component={Cotizaciones} />
       <Route path={"/seguimientos"} component={Seguimientos} />

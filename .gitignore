@@ -4,6 +4,7 @@
 
 # Build outputs
 dist/
+dist-server/
 build/
 *.dist
 
@@ -99,6 +100,7 @@ jspm_packages/
 # Temporary folders
 tmp/
 temp/
+.tmp-*
 
 # Database
 *.db
@@ -110,3 +112,5 @@ temp/
 
 # Manus version file (auto-generated, not part of source)
 client/public/__manus__/version.json
+
+.vercel

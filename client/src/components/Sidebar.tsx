@@ -94,38 +94,38 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
         {navItems.map((item) => (
-          <Link key={item.id} href={item.href}>
-            <a
-              className={`
-                flex items-center justify-between px-4 py-3 rounded-lg transition-smooth
-                ${
-                  isActive(item.href)
-                    ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-                    : 'text-sidebar-foreground hover:bg-sidebar-accent'
-                }
-              `}
-            >
-              <div className="flex items-center gap-3">
-                <span className={isActive(item.href) ? 'opacity-100' : 'opacity-70'}>
-                  {item.icon}
-                </span>
-                <span className="text-sm font-medium">{item.label}</span>
-              </div>
-              {item.badge && (
-                <span
-                  className={`
-                    px-2 py-1 rounded text-xs font-semibold
-                    ${
-                      isActive(item.href)
-                        ? 'bg-sidebar-primary-foreground text-sidebar-primary'
-                        : 'bg-sidebar-accent text-sidebar-foreground'
-                    }
-                  `}
-                >
-                  {item.badge}
-                </span>
-              )}
-            </a>
+          <Link
+            key={item.id}
+            href={item.href}
+            className={`
+              flex items-center justify-between px-4 py-3 rounded-lg transition-smooth
+              ${
+                isActive(item.href)
+                  ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                  : 'text-sidebar-foreground hover:bg-sidebar-accent'
+              }
+            `}
+          >
+            <div className="flex items-center gap-3">
+              <span className={isActive(item.href) ? 'opacity-100' : 'opacity-70'}>
+                {item.icon}
+              </span>
+              <span className="text-sm font-medium">{item.label}</span>
+            </div>
+            {item.badge && (
+              <span
+                className={`
+                  px-2 py-1 rounded text-xs font-semibold
+                  ${
+                    isActive(item.href)
+                      ? 'bg-sidebar-primary-foreground text-sidebar-primary'
+                      : 'bg-sidebar-accent text-sidebar-foreground'
+                  }
+                `}
+              >
+                {item.badge}
+              </span>
+            )}
           </Link>
         ))}
       </nav>

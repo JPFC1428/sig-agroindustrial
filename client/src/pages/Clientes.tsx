@@ -180,12 +180,12 @@ export default function Clientes() {
       titulo="Clientes"
       descripcion="Gestion de cartera de clientes activos"
       acciones={
-        <Link href="/clientes/nuevo">
-          <Button className="gap-2">
+        <Button asChild className="gap-2">
+          <Link href="/clientes/nuevo">
             <Plus size={18} />
             Nuevo Cliente
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       }
     >
       <div className="bg-card rounded-lg border border-border p-6 mb-6 shadow-sm">
@@ -358,15 +358,17 @@ export default function Clientes() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
-                        <Link href={`/clientes/${cliente.id}`}>
-                          <button className="p-2 hover:bg-background rounded transition-smooth text-muted-foreground hover:text-foreground">
-                            <Eye size={18} />
-                          </button>
+                        <Link
+                          href={`/clientes/${cliente.id}`}
+                          className="p-2 hover:bg-background rounded transition-smooth text-muted-foreground hover:text-foreground"
+                        >
+                          <Eye size={18} />
                         </Link>
-                        <Link href={`/clientes/${cliente.id}/editar`}>
-                          <button className="p-2 hover:bg-background rounded transition-smooth text-muted-foreground hover:text-foreground">
-                            <Edit size={18} />
-                          </button>
+                        <Link
+                          href={`/clientes/${cliente.id}/editar`}
+                          className="p-2 hover:bg-background rounded transition-smooth text-muted-foreground hover:text-foreground"
+                        >
+                          <Edit size={18} />
                         </Link>
                         <button
                           className="p-2 hover:bg-background rounded transition-smooth text-muted-foreground hover:text-destructive disabled:opacity-50"

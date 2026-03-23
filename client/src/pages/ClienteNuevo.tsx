@@ -270,12 +270,12 @@ export default function ClienteNuevo() {
         titulo={esEdicion ? "Editar Cliente" : "Nuevo Cliente"}
         descripcion="Cargando informacion del cliente"
         acciones={
-          <Link href={destinoVolver}>
-            <Button variant="outline" size="sm" className="gap-2">
+          <Button asChild variant="outline" size="sm" className="gap-2">
+            <Link href={destinoVolver}>
               <ArrowLeft size={18} />
               Volver
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         }
       >
         <div className="text-center py-12">
@@ -291,21 +291,21 @@ export default function ClienteNuevo() {
         titulo="Editar Cliente"
         descripcion="No fue posible cargar el formulario"
         acciones={
-          <Link href="/clientes">
-            <Button variant="outline" size="sm" className="gap-2">
+          <Button asChild variant="outline" size="sm" className="gap-2">
+            <Link href="/clientes">
               <ArrowLeft size={18} />
               Volver
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         }
       >
         <div className="text-center py-12">
           <p className="text-muted-foreground mb-4">
             {errorGlobal ?? "El cliente solicitado no existe"}
           </p>
-          <Link href="/clientes">
-            <Button variant="outline">Volver a Clientes</Button>
-          </Link>
+          <Button asChild variant="outline">
+            <Link href="/clientes">Volver a Clientes</Link>
+          </Button>
         </div>
       </DashboardLayout>
     );
@@ -320,12 +320,12 @@ export default function ClienteNuevo() {
           : "Registro de nuevos clientes"
       }
       acciones={
-        <Link href={destinoVolver}>
-          <Button variant="outline" size="sm" className="gap-2">
+        <Button asChild variant="outline" size="sm" className="gap-2">
+          <Link href={destinoVolver}>
             <ArrowLeft size={18} />
             Volver
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       }
     >
       <div className="max-w-5xl">
@@ -494,11 +494,11 @@ export default function ClienteNuevo() {
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-6 mt-6 border-t border-border">
-              <Link href={destinoVolver}>
-                <Button variant="outline" type="button">
+              <Button asChild variant="outline">
+                <Link href={destinoVolver}>
                   Cancelar
-                </Button>
-              </Link>
+                </Link>
+              </Button>
               <Button type="submit" className="gap-2" disabled={guardando}>
                 <Save size={16} />
                 {guardando

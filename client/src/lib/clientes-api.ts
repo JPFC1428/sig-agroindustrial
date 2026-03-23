@@ -25,7 +25,27 @@ export type ClienteMutationInput = {
   ultimaVisita?: string | Date | null;
 };
 
-const CLIENTES_API_URL = "/api/clientes";
+function getApiBaseUrl() {
+  const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+
+  if (!configuredBaseUrl) {
+    return "";
+  }
+
+  return configuredBaseUrl.replace(/\/+$/, "");
+}
+
+function buildApiUrl(pathname: string) {
+  const apiBaseUrl = getApiBaseUrl();
+
+  if (!apiBaseUrl) {
+    return pathname;
+  }
+
+  return `${apiBaseUrl}${pathname}`;
+}
+
+const CLIENTES_API_URL = buildApiUrl("/api/clientes");
 
 const JSON_HEADERS = {
   "Content-Type": "application/json",
@@ -57,8 +77,15 @@ function serializePayload(payload: Partial<ClienteMutationInput>) {
 
 async function readErrorMessage(response: Response) {
   try {
-    const data = (await response.json()) as { message?: string };
-    return data.message || `Error ${response.status}`;
+    const data = (await response.json()) as {
+      detail?: string;
+      error?: string;
+      message?: string;
+    };
+
+    return (
+      data.message || data.detail || data.error || `Error ${response.status}`
+    );
   } catch {
     return `Error ${response.status}`;
   }

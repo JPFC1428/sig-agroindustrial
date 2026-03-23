@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { nanoid } from "nanoid";
-import type { Cliente } from "../client/src/lib/types";
+import type { Cliente } from "../client/src/lib/types.js";
 import { getSql } from "./neon.js";
 
 type ClienteEstadoValue = Cliente["estado"];

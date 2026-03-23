@@ -5,6 +5,7 @@ import path from "node:path";
 import { defineConfig, loadEnv, type Plugin, type ViteDevServer } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 import { createClientesDevMiddleware } from "./api/clientes/_clientes-api.ts";
+import { createProspectosDevMiddleware } from "./api/prospectos/_prospectos-api.ts";
 
 // =============================================================================
 // Manus Debug Collector - Vite Plugin
@@ -102,6 +103,7 @@ function vitePluginManusDebugCollector(): Plugin {
 
     configureServer(server: ViteDevServer) {
       server.middlewares.use(createClientesDevMiddleware());
+      server.middlewares.use(createProspectosDevMiddleware());
 
       server.middlewares.use("/__manus__/logs", (req, res, next) => {
         if (req.method !== "POST") {
@@ -186,7 +188,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 3000,
-      strictPort: false,
+      strictPort: true,
       host: true,
       allowedHosts: [
         ".manuspre.computer",
@@ -201,6 +203,11 @@ export default defineConfig(({ mode }) => {
         strict: true,
         deny: ["**/.*"],
       },
+    },
+    preview: {
+      port: 3000,
+      strictPort: true,
+      host: true,
     },
   };
 });
