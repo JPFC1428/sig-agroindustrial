@@ -5,7 +5,29 @@ import path from "node:path";
 import { defineConfig, loadEnv, type Plugin, type ViteDevServer } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 import { createClientesDevMiddleware } from "./api/clientes/_clientes-api.ts";
+import { createCotizacionesDevMiddleware } from "./api/cotizaciones/_cotizaciones-api.ts";
+import { createDashboardDevMiddleware } from "./api/dashboard/_dashboard-api.ts";
 import { createProspectosDevMiddleware } from "./api/prospectos/_prospectos-api.ts";
+import { createVisitasDevMiddleware } from "./api/visitas/_visitas-api.ts";
+import { createSeguimientosDevMiddleware } from "./api/seguimientos/_seguimientos-api.ts";
+import {
+  createAuthDevMiddleware,
+  createProtectedApiDevMiddleware,
+} from "./server/auth-api.ts";
+import { createSertecDevMiddleware } from "./server/sertec-api.ts";
+import { createContableTercerosDevMiddleware } from "./server/contable-terceros-api.ts";
+import { createFacturasCompraDevMiddleware } from "./server/contable-facturas-compra-api.ts";
+import { createContableNotasCreditoDevMiddleware } from "./server/contable-notas-credito-api.ts";
+import { createContableCuadresCajaDevMiddleware } from "./server/contable-cuadres-caja-api.ts";
+import { createContableNominaDevMiddleware } from "./server/contable-nomina-api.ts";
+import { createEgresosDevMiddleware } from "./server/contable-egresos-api.ts";
+import { createCarteraDevMiddleware } from "./server/contable-cartera-api.ts";
+import { createRecibosCajaDevMiddleware } from "./server/contable-recibos-caja-api.ts";
+import { createContableBancosDevMiddleware } from "./server/contable-bancos-api.ts";
+import { createContableViaticosDevMiddleware } from "./server/contable-viaticos-api.ts";
+import { createContableArchivoDevMiddleware } from "./server/contable-archivo-api.ts";
+import { createContableReportesDevMiddleware } from "./server/contable-reportes-api.ts";
+import { createUsersDevMiddleware } from "./server/users-api.ts";
 
 // =============================================================================
 // Manus Debug Collector - Vite Plugin
@@ -102,8 +124,28 @@ function vitePluginManusDebugCollector(): Plugin {
     },
 
     configureServer(server: ViteDevServer) {
+      server.middlewares.use(createAuthDevMiddleware());
+      server.middlewares.use(createProtectedApiDevMiddleware());
+      server.middlewares.use(createDashboardDevMiddleware());
       server.middlewares.use(createClientesDevMiddleware());
+      server.middlewares.use(createCotizacionesDevMiddleware());
+      server.middlewares.use(createVisitasDevMiddleware());
+      server.middlewares.use(createSeguimientosDevMiddleware());
       server.middlewares.use(createProspectosDevMiddleware());
+      server.middlewares.use(createSertecDevMiddleware());
+      server.middlewares.use(createContableTercerosDevMiddleware());
+      server.middlewares.use(createFacturasCompraDevMiddleware());
+      server.middlewares.use(createContableNotasCreditoDevMiddleware());
+      server.middlewares.use(createContableCuadresCajaDevMiddleware());
+      server.middlewares.use(createContableNominaDevMiddleware());
+      server.middlewares.use(createEgresosDevMiddleware());
+      server.middlewares.use(createCarteraDevMiddleware());
+      server.middlewares.use(createRecibosCajaDevMiddleware());
+      server.middlewares.use(createContableBancosDevMiddleware());
+      server.middlewares.use(createContableViaticosDevMiddleware());
+      server.middlewares.use(createContableArchivoDevMiddleware());
+      server.middlewares.use(createContableReportesDevMiddleware());
+      server.middlewares.use(createUsersDevMiddleware());
 
       server.middlewares.use("/__manus__/logs", (req, res, next) => {
         if (req.method !== "POST") {
@@ -167,8 +209,12 @@ export default defineConfig(({ mode }) => {
   const localEnv = loadEnv(mode, projectRoot, "");
 
   // The Node middleware used in local Vite dev reads process.env, not import.meta.env.
-  if (!process.env.DATABASE_URL && localEnv.DATABASE_URL) {
-    process.env.DATABASE_URL = localEnv.DATABASE_URL;
+  for (const [key, value] of Object.entries(localEnv)) {
+    if (!value || process.env[key] !== undefined) {
+      continue;
+    }
+
+    process.env[key] = value;
   }
 
   return {

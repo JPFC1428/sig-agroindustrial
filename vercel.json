@@ -3,7 +3,16 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "functions": {
+    "api/cotizaciones/*.ts": {
+      "includeFiles": "templates/cotizaciones/**/*.xlsx"
+    }
+  },
   "rewrites": [
+    {
+      "source": "/api/contable/:path*",
+      "destination": "/api/[[...core]]"
+    },
     {
       "source": "/((?!api/).*)",
       "destination": "/index.html"

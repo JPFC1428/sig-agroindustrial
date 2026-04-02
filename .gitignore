@@ -14,6 +14,7 @@ build/
 .env.development.local
 .env.test.local
 .env.production.local
+.vercel.production.env
 
 # IDE and editor files
 .vscode/
@@ -109,6 +110,8 @@ temp/
 
 # Webdev artifacts (checkpoint zips, migrations, etc.)
 .webdev/
+fly-cookies.txt
+vercel-cookies.txt
 
 # Manus version file (auto-generated, not part of source)
 client/public/__manus__/version.json

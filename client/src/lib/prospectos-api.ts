@@ -1,4 +1,5 @@
 import type { Prospecto } from "./types";
+import { notifyDashboardDataChanged } from "./dashboard-events";
 
 type ProspectoApiRecord = Omit<
   Prospecto,
@@ -96,6 +97,7 @@ async function readErrorMessage(response: Response) {
 export async function getProspectos() {
   const response = await fetch(PROSPECTOS_API_URL, {
     cache: "no-store",
+    credentials: "include",
   });
 
   if (!response.ok) {
@@ -109,6 +111,7 @@ export async function getProspectos() {
 export async function getProspectoById(id: string) {
   const response = await fetch(`${PROSPECTOS_API_URL}/${id}`, {
     cache: "no-store",
+    credentials: "include",
   });
 
   if (response.status === 404) {
@@ -125,6 +128,7 @@ export async function getProspectoById(id: string) {
 
 export async function createProspecto(payload: ProspectoMutationInput) {
   const response = await fetch(PROSPECTOS_API_URL, {
+    credentials: "include",
     method: "POST",
     headers: JSON_HEADERS,
     body: JSON.stringify(serializePayload(payload)),
@@ -135,7 +139,9 @@ export async function createProspecto(payload: ProspectoMutationInput) {
   }
 
   const data = (await response.json()) as ProspectoApiRecord;
-  return toProspecto(data);
+  const prospecto = toProspecto(data);
+  notifyDashboardDataChanged();
+  return prospecto;
 }
 
 export async function updateProspecto(
@@ -143,6 +149,7 @@ export async function updateProspecto(
   payload: Partial<ProspectoMutationInput>
 ) {
   const response = await fetch(`${PROSPECTOS_API_URL}/${id}`, {
+    credentials: "include",
     method: "PUT",
     headers: JSON_HEADERS,
     body: JSON.stringify(serializePayload(payload)),
@@ -153,15 +160,20 @@ export async function updateProspecto(
   }
 
   const data = (await response.json()) as ProspectoApiRecord;
-  return toProspecto(data);
+  const prospecto = toProspecto(data);
+  notifyDashboardDataChanged();
+  return prospecto;
 }
 
 export async function deleteProspecto(id: string) {
   const response = await fetch(`${PROSPECTOS_API_URL}/${id}`, {
+    credentials: "include",
     method: "DELETE",
   });
 
   if (!response.ok) {
     throw new Error(await readErrorMessage(response));
   }
+
+  notifyDashboardDataChanged();
 }

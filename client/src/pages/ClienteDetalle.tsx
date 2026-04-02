@@ -24,17 +24,20 @@ import { es } from "date-fns/locale";
 import { Link, useRoute } from "wouter";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
+import { getCotizaciones } from "@/lib/cotizaciones-api";
 import { getClienteById } from "@/lib/clientes-api";
 import {
-  cotizacionesMock,
   seguimientosMock,
   visitasMock,
 } from "@/lib/mock-data";
-import type { Cliente } from "@/lib/types";
+import type { Cliente, Cotizacion } from "@/lib/types";
 
 export default function ClienteDetalle() {
   const [match, params] = useRoute("/clientes/:id");
   const [cliente, setCliente] = useState<Cliente | null>(null);
+  const [cotizacionesCliente, setCotizacionesCliente] = useState<Cotizacion[]>(
+    []
+  );
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,13 +57,19 @@ export default function ClienteDetalle() {
       setError(null);
 
       try {
-        const data = await getClienteById(id);
+        const [data, cotizaciones] = await Promise.all([
+          getClienteById(id),
+          getCotizaciones(),
+        ]);
 
         if (!activo) {
           return;
         }
 
         setCliente(data);
+        setCotizacionesCliente(
+          cotizaciones.filter(cotizacion => cotizacion.clienteId === id)
+        );
       } catch (loadError) {
         if (!activo) {
           return;
@@ -72,6 +81,7 @@ export default function ClienteDetalle() {
             : "No se pudo cargar el cliente"
         );
         setCliente(null);
+        setCotizacionesCliente([]);
       } finally {
         if (activo) {
           setCargando(false);
@@ -131,9 +141,6 @@ export default function ClienteDetalle() {
   }
 
   const visitas = visitasMock.filter(visita => visita.clienteId === cliente.id);
-  const cotizaciones = cotizacionesMock.filter(
-    cotizacion => cotizacion.clienteId === cliente.id
-  );
   const seguimientos = seguimientosMock.filter(
     seguimiento => seguimiento.clienteId === cliente.id
   );
@@ -334,14 +341,16 @@ export default function ClienteDetalle() {
           <h2 className="text-lg font-semibold text-foreground">
             Cotizaciones
           </h2>
-          <Button size="sm" className="gap-2">
-            <FileText size={16} />
-            Nueva Cotizacion
+          <Button asChild size="sm" className="gap-2">
+            <Link href={`/cotizaciones/nuevo?clienteId=${cliente.id}`}>
+              <FileText size={16} />
+              Nueva Cotizacion
+            </Link>
           </Button>
         </div>
-        {cotizaciones.length > 0 ? (
+        {cotizacionesCliente.length > 0 ? (
           <div className="space-y-3">
-            {cotizaciones.map(cotizacion => (
+            {cotizacionesCliente.map(cotizacion => (
               <div
                 key={cotizacion.id}
                 className="flex items-start gap-4 pb-3 border-b border-border last:border-b-0"

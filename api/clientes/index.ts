@@ -1,54 +1,44 @@
+import type { IncomingMessage, ServerResponse } from "node:http";
 import { handleClientesCollection } from "./_clientes-api.js";
-import {
-  createNodeRequestFromWebRequest,
-  createNodeResponseCapture,
-  type RuntimeRequest,
-} from "./_web-response-bridge.js";
+import { requireAuthorizedApiRequest } from "../../server/auth-api.js";
 
 export const config = {
   runtime: "nodejs",
 };
 
-export default async function handler(request: RuntimeRequest) {
-  console.info("[api/clientes/index] handler:start", {
-    method: request.method,
-    url: request.url,
-  });
+type NodeRequest = IncomingMessage & {
+  body?: unknown;
+};
 
-  const nodeRequest = await createNodeRequestFromWebRequest(request);
-  const nodeResponse = createNodeResponseCapture();
-
+export default async function handler(
+  request: NodeRequest,
+  response: ServerResponse
+) {
   try {
-    await handleClientesCollection(nodeRequest, nodeResponse.nodeResponse);
-    console.info("[api/clientes/index] handler:done", {
-      method: nodeRequest.method,
-      url: nodeRequest.url,
-      statusCode: nodeResponse.statusCode,
-    });
-    return nodeResponse.toResponse();
+    const authenticatedUser = await requireAuthorizedApiRequest(
+      request,
+      response,
+      new URL(request.url ?? "/", "http://localhost").pathname
+    );
+
+    if (!authenticatedUser) {
+      return;
+    }
+
+    await handleClientesCollection(request, response);
   } catch (error) {
     const detail =
       error instanceof Error ? error.message : "Error desconocido";
 
-    console.error("[api/clientes/index] handler:error", {
-      method: nodeRequest.method,
-      url: nodeRequest.url,
-      detail,
-      ...(error instanceof Error && error.stack ? { stack: error.stack } : {}),
-    });
-
-    if (!nodeResponse.headersSent) {
-      return new Response(
-        JSON.stringify({ error: "Error interno en /api/clientes", detail }),
-        {
-          headers: {
-            "Content-Type": "application/json; charset=utf-8",
-          },
-          status: 500,
-        }
+    if (!response.headersSent) {
+      response.statusCode = 500;
+      response.setHeader("Content-Type", "application/json; charset=utf-8");
+      response.end(
+        JSON.stringify({ error: "Error interno en /api/clientes", detail })
       );
+      return;
     }
 
-    return nodeResponse.toResponse();
+    response.end();
   }
 }

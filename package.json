@@ -14,8 +14,8 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@neondatabase/serverless": "^1.0.1",
     "@hookform/resolvers": "^5.2.2",
+    "@neondatabase/serverless": "^1.0.1",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
@@ -65,6 +65,7 @@
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.1.2",
     "wouter": "^3.3.5",
+    "xlsx-populate": "^1.21.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {

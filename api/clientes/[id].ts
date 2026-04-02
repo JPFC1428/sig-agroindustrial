@@ -1,86 +1,61 @@
+import type { IncomingMessage, ServerResponse } from "node:http";
 import {
   getClienteIdFromRequestUrl,
   handleClienteItem,
 } from "./_clientes-api.js";
-import {
-  createNodeRequestFromWebRequest,
-  createNodeResponseCapture,
-  type RuntimeRequest,
-} from "./_web-response-bridge.js";
+import { requireAuthorizedApiRequest } from "../../server/auth-api.js";
 
 export const config = {
   runtime: "nodejs",
 };
 
-export default async function handler(request: RuntimeRequest) {
-  console.info("[api/clientes/[id]] handler:start", {
-    method: request.method,
-    url: request.url,
-  });
+type NodeRequest = IncomingMessage & {
+  body?: unknown;
+};
 
-  const nodeRequest = await createNodeRequestFromWebRequest(request);
-  const nodeResponse = createNodeResponseCapture();
-  const id = getClienteIdFromRequestUrl(nodeRequest.url);
-
-  console.info("[api/clientes/[id]] handler:parsed-id", {
-    method: nodeRequest.method,
-    url: nodeRequest.url,
-    id,
-  });
+export default async function handler(
+  request: NodeRequest,
+  response: ServerResponse
+) {
+  const id = getClienteIdFromRequestUrl(request.url);
 
   if (!id) {
-    console.error("[api/clientes/[id]] handler:invalid-id", {
-      method: nodeRequest.method,
-      url: nodeRequest.url,
-    });
-
-    return new Response(
+    response.statusCode = 400;
+    response.setHeader("Content-Type", "application/json; charset=utf-8");
+    response.end(
       JSON.stringify({
         error: "Cliente invalido",
         detail: "No se pudo extraer un id valido desde la URL",
-      }),
-      {
-        headers: {
-          "Content-Type": "application/json; charset=utf-8",
-        },
-        status: 400,
-      }
+      })
     );
+    return;
   }
 
   try {
-    await handleClienteItem(nodeRequest, nodeResponse.nodeResponse, id);
-    console.info("[api/clientes/[id]] handler:done", {
-      method: nodeRequest.method,
-      url: nodeRequest.url,
-      id,
-      statusCode: nodeResponse.statusCode,
-    });
-    return nodeResponse.toResponse();
+    const authenticatedUser = await requireAuthorizedApiRequest(
+      request,
+      response,
+      new URL(request.url ?? "/", "http://localhost").pathname
+    );
+
+    if (!authenticatedUser) {
+      return;
+    }
+
+    await handleClienteItem(request, response, id);
   } catch (error) {
     const detail =
       error instanceof Error ? error.message : "Error desconocido";
 
-    console.error("[api/clientes/[id]] handler:error", {
-      method: nodeRequest.method,
-      url: nodeRequest.url,
-      id,
-      detail,
-      ...(error instanceof Error && error.stack ? { stack: error.stack } : {}),
-    });
-
-    if (!nodeResponse.headersSent) {
-      return new Response(
-        JSON.stringify({ error: "Error interno en /api/clientes/[id]", detail }),
-        {
-          headers: {
-            "Content-Type": "application/json; charset=utf-8",
-          },
-          status: 500,
-        }
+    if (!response.headersSent) {
+      response.statusCode = 500;
+      response.setHeader("Content-Type", "application/json; charset=utf-8");
+      response.end(
+        JSON.stringify({ error: "Error interno en /api/clientes/[id]", detail })
       );
+      return;
     }
 
-    return nodeResponse.toResponse();
+    response.end();
   }
 }

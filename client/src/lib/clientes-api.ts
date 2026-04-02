@@ -1,4 +1,5 @@
 import type { Cliente } from "./types";
+import { notifyDashboardDataChanged } from "./dashboard-events";
 
 type ClienteApiRecord = Omit<Cliente, "fechaRegistro" | "ultimaVisita"> & {
   fechaRegistro: string;
@@ -94,6 +95,7 @@ async function readErrorMessage(response: Response) {
 export async function getClientes() {
   const response = await fetch(CLIENTES_API_URL, {
     cache: "no-store",
+    credentials: "include",
   });
 
   if (!response.ok) {
@@ -107,6 +109,7 @@ export async function getClientes() {
 export async function getClienteById(id: string) {
   const response = await fetch(`${CLIENTES_API_URL}/${id}`, {
     cache: "no-store",
+    credentials: "include",
   });
 
   if (response.status === 404) {
@@ -123,6 +126,7 @@ export async function getClienteById(id: string) {
 
 export async function createCliente(payload: ClienteMutationInput) {
   const response = await fetch(CLIENTES_API_URL, {
+    credentials: "include",
     method: "POST",
     headers: JSON_HEADERS,
     body: JSON.stringify(serializePayload(payload)),
@@ -133,7 +137,9 @@ export async function createCliente(payload: ClienteMutationInput) {
   }
 
   const data = (await response.json()) as ClienteApiRecord;
-  return toCliente(data);
+  const cliente = toCliente(data);
+  notifyDashboardDataChanged();
+  return cliente;
 }
 
 export async function updateCliente(
@@ -141,6 +147,7 @@ export async function updateCliente(
   payload: Partial<ClienteMutationInput>
 ) {
   const response = await fetch(`${CLIENTES_API_URL}/${id}`, {
+    credentials: "include",
     method: "PUT",
     headers: JSON_HEADERS,
     body: JSON.stringify(serializePayload(payload)),
@@ -151,15 +158,20 @@ export async function updateCliente(
   }
 
   const data = (await response.json()) as ClienteApiRecord;
-  return toCliente(data);
+  const cliente = toCliente(data);
+  notifyDashboardDataChanged();
+  return cliente;
 }
 
 export async function deleteCliente(id: string) {
   const response = await fetch(`${CLIENTES_API_URL}/${id}`, {
+    credentials: "include",
     method: "DELETE",
   });
 
   if (!response.ok) {
     throw new Error(await readErrorMessage(response));
   }
+
+  notifyDashboardDataChanged();
 }
