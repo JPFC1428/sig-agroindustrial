@@ -185,6 +185,34 @@ const inventarioComprasItems: ModuleNavItem[] = [
     description:
       "Punto de entrada funcional para inventario, compras y abastecimiento.",
   },
+  {
+    id: "inventario-proveedores",
+    label: "Proveedores",
+    href: "/inventario-compras/proveedores",
+    description:
+      "Consulta y registro de proveedores reutilizando terceros tipo proveedor.",
+  },
+  {
+    id: "inventario-productos",
+    label: "Productos / Equipos",
+    href: "/inventario-compras/productos",
+    description:
+      "Catalogo base con codigo, categoria, costo, precio y control de stock.",
+  },
+  {
+    id: "inventario-compras",
+    label: "Compras",
+    href: "/inventario-compras/compras",
+    description:
+      "Registro de compras por proveedor con detalle de items adquiridos.",
+  },
+  {
+    id: "inventario-entradas",
+    label: "Entradas",
+    href: "/inventario-compras/entradas",
+    description:
+      "Entradas a inventario que incrementan stock sin duplicar movimientos.",
+  },
 ];
 
 export const APP_MODULES: AppModuleDefinition[] = [

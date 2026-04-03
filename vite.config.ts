@@ -27,6 +27,7 @@ import { createContableBancosDevMiddleware } from "./server/contable-bancos-api.
 import { createContableViaticosDevMiddleware } from "./server/contable-viaticos-api.ts";
 import { createContableArchivoDevMiddleware } from "./server/contable-archivo-api.ts";
 import { createContableReportesDevMiddleware } from "./server/contable-reportes-api.ts";
+import { createInventarioDevMiddleware } from "./server/inventario-api.ts";
 import { createUsersDevMiddleware } from "./server/users-api.ts";
 
 // =============================================================================
@@ -145,6 +146,7 @@ function vitePluginManusDebugCollector(): Plugin {
       server.middlewares.use(createContableViaticosDevMiddleware());
       server.middlewares.use(createContableArchivoDevMiddleware());
       server.middlewares.use(createContableReportesDevMiddleware());
+      server.middlewares.use(createInventarioDevMiddleware());
       server.middlewares.use(createUsersDevMiddleware());
 
       server.middlewares.use("/__manus__/logs", (req, res, next) => {

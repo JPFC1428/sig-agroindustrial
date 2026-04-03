@@ -38,6 +38,10 @@ import ClienteNuevo from "./pages/ClienteNuevo";
 import CotizacionImprimir from "./pages/CotizacionImprimir";
 import CotizacionNueva from "./pages/CotizacionNueva";
 import InventarioCompras from "./pages/InventarioCompras";
+import InventarioComprasGestion from "./pages/InventarioComprasGestion";
+import InventarioEntradas from "./pages/InventarioEntradas";
+import InventarioProductos from "./pages/InventarioProductos";
+import InventarioProveedores from "./pages/InventarioProveedores";
 import Login from "./pages/Login";
 import ProspectoDetalle from "./pages/ProspectoDetalle";
 import ProspectoNuevo from "./pages/ProspectoNuevo";
@@ -183,6 +187,22 @@ function Router() {
       <ProtectedRoute
         path={"/inventario-compras"}
         component={InventarioCompras}
+      />
+      <ProtectedRoute
+        path={"/inventario-compras/proveedores"}
+        component={InventarioProveedores}
+      />
+      <ProtectedRoute
+        path={"/inventario-compras/productos"}
+        component={InventarioProductos}
+      />
+      <ProtectedRoute
+        path={"/inventario-compras/compras"}
+        component={InventarioComprasGestion}
+      />
+      <ProtectedRoute
+        path={"/inventario-compras/entradas"}
+        component={InventarioEntradas}
       />
       <ProtectedRoute
         path={"/inventario-compras/:section"}

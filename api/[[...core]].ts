@@ -49,6 +49,7 @@ import {
 } from "../server/contable-viaticos-api.js";
 import { handleContableArchivoCollection } from "../server/contable-archivo-api.js";
 import { handleContableReportesCollection } from "../server/contable-reportes-api.js";
+import { handleInventarioRoute } from "../server/inventario-api.js";
 import { handleUsersCollection } from "../server/users-api.js";
 
 export const config = {
@@ -466,6 +467,24 @@ export default async function handler(
       }
 
       await handleContableViaticoItem(request, response, contableViaticoId);
+      return;
+    }
+
+    if (
+      pathname === "/api/inventario" ||
+      pathname.startsWith("/api/inventario/")
+    ) {
+      const authenticatedUser = await requireAuthorizedApiRequest(
+        request,
+        response,
+        pathname
+      );
+
+      if (!authenticatedUser) {
+        return;
+      }
+
+      await handleInventarioRoute(request, response);
       return;
     }
 

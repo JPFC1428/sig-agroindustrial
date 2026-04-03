@@ -57,5 +57,9 @@ export function canAccessApiPath(role: ActiveUserRole, pathname: string) {
     return role === "contable";
   }
 
+  if (matchesPath(pathname, "/api/inventario")) {
+    return role === "inventario";
+  }
+
   return false;
 }

@@ -932,6 +932,130 @@ export interface ContableNominaData {
   seguridadSocial: ContableNominaSeguridadSocial[];
 }
 
+export enum InventarioProductoTipoItem {
+  PRODUCTO = "producto",
+  EQUIPO = "equipo",
+}
+
+export enum InventarioProductoEstado {
+  ACTIVO = "activo",
+  INACTIVO = "inactivo",
+  DESCONTINUADO = "descontinuado",
+}
+
+export interface InventarioProducto {
+  id: string;
+  tipoItem: InventarioProductoTipoItem;
+  codigo: string;
+  nombre: string;
+  categoria: string;
+  marca?: string;
+  modelo?: string;
+  serial?: string;
+  manejaSerial: boolean;
+  unidad: string;
+  costo: number;
+  precio: number;
+  stockActual: number;
+  estado: InventarioProductoEstado;
+  referenciaExternaTipo?: string;
+  referenciaExternaId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum InventarioCompraEstado {
+  REGISTRADA = "registrada",
+  PARCIAL = "parcial",
+  RECIBIDA = "recibida",
+  ANULADA = "anulada",
+}
+
+export interface InventarioCompraItem {
+  id: string;
+  compraId: string;
+  productoId: string;
+  productoCodigo: string;
+  productoNombre: string;
+  descripcion: string;
+  cantidad: number;
+  costoUnitario: number;
+  total: number;
+  cantidadRecibida: number;
+  pendienteRecibir: number;
+}
+
+export interface InventarioCompra {
+  id: string;
+  numeroCompra: string;
+  proveedorId: string;
+  proveedorNombreRazonSocial: string;
+  proveedorDocumentoNit: string;
+  fecha: Date;
+  observaciones?: string;
+  estado: InventarioCompraEstado;
+  total: number;
+  items: InventarioCompraItem[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum InventarioEntradaOrigenTipo {
+  MANUAL = "manual",
+  COMPRA = "compra",
+  AJUSTE = "ajuste",
+  SERTEC = "sertec",
+  COMERCIAL = "comercial",
+  TRASLADO = "traslado",
+  GARANTIA = "garantia",
+}
+
+export interface InventarioEntradaItem {
+  id: string;
+  entradaId: string;
+  productoId: string;
+  productoCodigo: string;
+  productoNombre: string;
+  cantidad: number;
+  costoUnitario: number;
+  total: number;
+  serial?: string;
+  compraItemId?: string;
+}
+
+export interface InventarioEntrada {
+  id: string;
+  numeroEntrada: string;
+  fecha: Date;
+  origenTipo: InventarioEntradaOrigenTipo;
+  origenId?: string;
+  compraId?: string;
+  compraNumero?: string;
+  bodegaId?: string;
+  observaciones?: string;
+  totalItems: number;
+  totalCosto: number;
+  items: InventarioEntradaItem[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface InventarioResumen {
+  proveedores: number;
+  productos: number;
+  compras: number;
+  entradas: number;
+  stockTotal: number;
+  valorInventario: number;
+}
+
+export interface InventarioDashboardData {
+  resumen: InventarioResumen;
+  comprasRecientes: InventarioCompra[];
+  entradasRecientes: InventarioEntrada[];
+  productosRecientes: InventarioProducto[];
+}
+
 export enum ContableArchivoDocumentoTipo {
   FACTURA_COMPRA = "factura_compra",
   EGRESO = "egreso",

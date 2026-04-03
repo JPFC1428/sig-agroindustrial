@@ -19,8 +19,10 @@ import {
   LogOut,
   MapPin,
   Package,
+  ShoppingCart,
   Shield,
   Target,
+  Truck,
   Users,
   Wallet,
   Wrench,
@@ -95,6 +97,18 @@ function getItemIcon(itemId: string) {
     itemId.includes("conciliaciones")
   ) {
     return <Wallet size={20} />;
+  }
+
+  if (itemId.includes("compras")) {
+    return <ShoppingCart size={20} />;
+  }
+
+  if (itemId.includes("entradas")) {
+    return <Truck size={20} />;
+  }
+
+  if (itemId.includes("productos") || itemId.includes("inventario")) {
+    return <Package size={20} />;
   }
 
   if (itemId.includes("archivo")) {

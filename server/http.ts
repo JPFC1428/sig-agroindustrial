@@ -84,6 +84,7 @@ import {
 } from "./contable-viaticos-api.js";
 import { handleContableArchivoCollection } from "./contable-archivo-api.js";
 import { handleContableReportesCollection } from "./contable-reportes-api.js";
+import { handleInventarioRoute } from "./inventario-api.js";
 import { handleUsersCollection } from "./users-api.js";
 
 type CorsConfig = {
@@ -473,6 +474,11 @@ async function requestHandler(req: IncomingMessage, res: ServerResponse) {
 
   if (contableViaticoId) {
     await handleContableViaticoItem(req, res, contableViaticoId);
+    return;
+  }
+
+  if (pathname === "/api/inventario" || pathname.startsWith("/api/inventario/")) {
+    await handleInventarioRoute(req, res);
     return;
   }
 

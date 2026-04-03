@@ -138,6 +138,7 @@ export function isProtectedApiPath(pathname: string) {
     pathname.startsWith("/api/contable") ||
     pathname.startsWith("/api/clientes") ||
     pathname.startsWith("/api/cotizaciones") ||
+    pathname.startsWith("/api/inventario") ||
     pathname.startsWith("/api/seguimientos") ||
     pathname.startsWith("/api/visitas") ||
     pathname.startsWith("/api/prospectos") ||
