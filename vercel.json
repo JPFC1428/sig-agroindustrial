@@ -14,6 +14,10 @@
       "destination": "/api/[[...core]]"
     },
     {
+      "source": "/api/inventario/:path*",
+      "destination": "/api/[[...core]]"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
