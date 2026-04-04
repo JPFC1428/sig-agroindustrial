@@ -45,6 +45,7 @@ import InventarioProductos from "./pages/InventarioProductos";
 import InventarioProveedores from "./pages/InventarioProveedores";
 import Login from "./pages/Login";
 import MercadoAgricola from "./pages/MercadoAgricola";
+import MercadoAgricolaAdmin from "./pages/MercadoAgricolaAdmin";
 import ProspectoDetalle from "./pages/ProspectoDetalle";
 import ProspectoNuevo from "./pages/ProspectoNuevo";
 import Prospectos from "./pages/Prospectos";
@@ -211,6 +212,10 @@ function Router() {
         component={InventarioCompras}
       />
       <ProtectedRoute path={"/chat"} component={ChatInterno} />
+      <ProtectedRoute
+        path={"/mercado-agricola/admin"}
+        component={MercadoAgricolaAdmin}
+      />
       <ProtectedRoute path={"/mercado-agricola"} component={MercadoAgricola} />
       <ProtectedRoute path={"/configuracion"} component={Configuracion} />
       <ProtectedRoute path={"/usuarios"} component={Usuarios} adminOnly />

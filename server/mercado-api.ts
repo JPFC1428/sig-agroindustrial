@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { nanoid } from "nanoid";
 import {
   InventarioProductoEstado,
   InventarioProductoTipoItem,
@@ -7,6 +8,7 @@ import {
 } from "../client/src/lib/types.js";
 import { requireAuthenticatedRequest } from "./auth-api.js";
 import type { ActiveUserRole } from "./access-control.js";
+import { insertInventarioProducto } from "./inventario-api.js";
 import { getSql } from "./neon.js";
 
 type NodeRequest = IncomingMessage & {
@@ -27,6 +29,7 @@ type MercadoBootstrapDataApiRecord = {
   productos: InventarioProductoApiRecord[];
   puedeAdministrar: boolean;
   whatsappNumeroConfigurado: boolean;
+  whatsappNumero?: string;
 };
 
 type ProductoRow = {
@@ -55,17 +58,39 @@ type ProductoRow = {
 };
 
 type MercadoProductoPayload = {
+  categoria?: unknown;
   descripcion?: unknown;
   imagenUrl?: unknown;
+  marca?: unknown;
+  nombre?: unknown;
   precio?: unknown;
+  stockActual?: unknown;
+  stockInicial?: unknown;
   tipoDisponibilidad?: unknown;
   visibleEnMercado?: unknown;
 };
 
-type BuiltMercadoProductoUpdate = {
+type BuiltMercadoProductoCreate = {
+  categoria: string;
   descripcion?: string;
   imagenUrl?: string;
+  marca?: string;
+  nombre: string;
   precio: number;
+  stockActual: number;
+  stockInicial: number;
+  tipoDisponibilidad: MercadoDisponibilidadTipo;
+  visibleEnMercado: boolean;
+};
+
+type BuiltMercadoProductoUpdate = {
+  categoria: string;
+  descripcion?: string;
+  imagenUrl?: string;
+  marca?: string;
+  nombre: string;
+  precio: number;
+  stockActual: number;
   tipoDisponibilidad: MercadoDisponibilidadTipo;
   visibleEnMercado: boolean;
 };
@@ -217,6 +242,10 @@ function formatTimestampValue(value: string | Date) {
 
 function canManageMercado(role: ActiveUserRole) {
   return role === "admin" || role === "comercial" || role === "inventario";
+}
+
+function generateMercadoProductCode() {
+  return `MDA-${nanoid(8).toUpperCase()}`;
 }
 
 function hasOwnProperty(
@@ -395,9 +424,21 @@ function buildMercadoProductoUpdate(
   }
 
   const data = payload as Record<string, unknown>;
+  const nombre = hasOwnProperty(data, "nombre")
+    ? readString(data.nombre) ?? ""
+    : existing.nombre;
+  const categoria = hasOwnProperty(data, "categoria")
+    ? readString(data.categoria) ?? ""
+    : existing.categoria;
+  const marca = hasOwnProperty(data, "marca")
+    ? readOptionalString(data.marca)
+    : existing.marca;
   const precio = hasOwnProperty(data, "precio")
     ? roundMoney(readNumber(data.precio))
     : existing.precio;
+  const stockActual = hasOwnProperty(data, "stockActual")
+    ? roundMoney(readNumber(data.stockActual))
+    : existing.stockActual;
   const visibleEnMercado = hasOwnProperty(data, "visibleEnMercado")
     ? readBoolean(data.visibleEnMercado, existing.visibleEnMercado)
     : existing.visibleEnMercado;
@@ -416,17 +457,118 @@ function buildMercadoProductoUpdate(
     throw new Error("El precio del producto es invalido");
   }
 
+  if (!Number.isFinite(stockActual) || stockActual < 0) {
+    throw new Error("El stock del producto es invalido");
+  }
+
+  if (!nombre) {
+    throw new Error("El nombre del producto es obligatorio");
+  }
+
+  if (!categoria) {
+    throw new Error("La categoria del producto es obligatoria");
+  }
+
   if (!MERCADO_DISPONIBILIDADES.has(tipoDisponibilidad)) {
     throw new Error("La disponibilidad del producto es invalida");
   }
 
   return {
+    categoria,
     descripcion,
     imagenUrl,
+    marca,
+    nombre,
     precio,
+    stockActual,
     tipoDisponibilidad,
     visibleEnMercado,
   };
+}
+
+function buildMercadoProductoCreate(payload: unknown): BuiltMercadoProductoCreate {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw new Error("Cuerpo de solicitud invalido");
+  }
+
+  const data = payload as MercadoProductoPayload;
+  const nombre = readString(data.nombre) ?? "";
+  const categoria = readString(data.categoria) ?? "";
+  const marca = readOptionalString(data.marca);
+  const descripcion = readOptionalString(data.descripcion);
+  const imagenUrl = readOptionalString(data.imagenUrl);
+  const precio = roundMoney(readNumber(data.precio));
+  const stockInicial = roundMoney(readNumber(data.stockInicial, 0));
+  const stockActual = roundMoney(
+    readNumber(data.stockActual, stockInicial)
+  );
+  const visibleEnMercado = readBoolean(data.visibleEnMercado, true);
+  const tipoDisponibilidad =
+    (readString(data.tipoDisponibilidad) as MercadoDisponibilidadTipo | undefined) ??
+    (stockInicial > 0
+      ? MercadoDisponibilidadTipo.STOCK
+      : MercadoDisponibilidadTipo.BAJO_PEDIDO);
+
+  if (!nombre) {
+    throw new Error("El nombre del producto es obligatorio");
+  }
+
+  if (!categoria) {
+    throw new Error("La categoria del producto es obligatoria");
+  }
+
+  if (!Number.isFinite(precio) || precio < 0) {
+    throw new Error("El precio del producto es invalido");
+  }
+
+  if (!Number.isFinite(stockInicial) || stockInicial < 0) {
+    throw new Error("El stock inicial es invalido");
+  }
+
+  if (!Number.isFinite(stockActual) || stockActual < 0) {
+    throw new Error("El stock del producto es invalido");
+  }
+
+  if (!MERCADO_DISPONIBILIDADES.has(tipoDisponibilidad)) {
+    throw new Error("La disponibilidad del producto es invalida");
+  }
+
+  return {
+    categoria,
+    descripcion,
+    imagenUrl,
+    marca,
+    nombre,
+    precio,
+    stockActual,
+    stockInicial,
+    tipoDisponibilidad,
+    visibleEnMercado,
+  };
+}
+
+async function createMercadoProducto(
+  payload: unknown
+): Promise<InventarioProductoApiRecord> {
+  const input = buildMercadoProductoCreate(payload);
+
+  return (await insertInventarioProducto({
+    categoria: input.categoria,
+    codigo: generateMercadoProductCode(),
+    costo: input.precio,
+    descripcion: input.descripcion,
+    estado: InventarioProductoEstado.ACTIVO,
+    imagenUrl: input.imagenUrl,
+    marca: input.marca,
+    manejaSerial: false,
+    nombre: input.nombre,
+    precio: input.precio,
+    stockActual: input.stockActual,
+    tipoDisponibilidad: input.tipoDisponibilidad,
+    tipoItem: InventarioProductoTipoItem.PRODUCTO,
+    unidad: "unidad",
+    visibleEnMercado: input.visibleEnMercado,
+  })) as InventarioProductoApiRecord;
 }
 
 async function updateMercadoProducto(
@@ -451,8 +593,12 @@ async function updateMercadoProducto(
   const rows = (await sql`
     UPDATE inventario_productos
     SET
+      nombre = ${input.nombre},
+      categoria = ${input.categoria},
+      marca = ${input.marca ?? null},
       descripcion = ${input.descripcion ?? null},
       precio = ${input.precio},
+      stock_actual = ${input.stockActual},
       visible_en_mercado = ${input.visibleEnMercado},
       tipo_disponibilidad = ${input.tipoDisponibilidad},
       imagen_url = ${input.imagenUrl ?? null},
@@ -494,14 +640,16 @@ async function getMercadoBootstrapData(
   currentUser: AuthenticatedMarketUser
 ): Promise<MercadoBootstrapDataApiRecord> {
   const productos = await listMercadoProductos(currentUser);
+  const whatsappNumero =
+    process.env.VITE_MERCADO_WHATSAPP_NUMERO?.trim() ||
+    process.env.MERCADO_WHATSAPP_NUMERO?.trim() ||
+    undefined;
 
   return {
     puedeAdministrar: canManageMercado(currentUser.rol),
     productos,
-    whatsappNumeroConfigurado: Boolean(
-      process.env.VITE_MERCADO_WHATSAPP_NUMERO?.trim() ||
-        process.env.MERCADO_WHATSAPP_NUMERO?.trim()
-    ),
+    whatsappNumero,
+    whatsappNumeroConfigurado: Boolean(whatsappNumero),
   };
 }
 
@@ -552,13 +700,30 @@ export async function handleMercadoRoute(req: NodeRequest, res: ServerResponse) 
     }
 
     if (segments.length === 1 && segments[0] === "productos") {
-      if (req.method !== "GET") {
-        sendMethodNotAllowed(res, ["GET"]);
+      if (req.method === "GET") {
+        const data = await listMercadoProductos(currentUser, getSearchParams(req.url));
+        sendJson(res, 200, data);
         return;
       }
 
-      const data = await listMercadoProductos(currentUser, getSearchParams(req.url));
-      sendJson(res, 200, data);
+      if (req.method === "POST") {
+        if (!canManageMercado(currentUser.rol)) {
+          sendErrorJson(
+            res,
+            403,
+            "Acceso denegado",
+            "Tu rol no puede crear productos en mercado"
+          );
+          return;
+        }
+
+        const payload = await readJsonBody(req);
+        const data = await createMercadoProducto(payload);
+        sendJson(res, 201, data);
+        return;
+      }
+
+      sendMethodNotAllowed(res, ["GET", "POST"]);
       return;
     }
 

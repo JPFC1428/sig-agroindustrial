@@ -77,6 +77,7 @@ export type InventarioProductoMutationInput = {
   unidad: string;
   costo: number;
   precio: number;
+  stockActual?: number;
   estado: InventarioProductoEstado;
   visibleEnMercado?: boolean;
   tipoDisponibilidad?: MercadoDisponibilidadTipo;

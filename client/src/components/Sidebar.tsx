@@ -189,7 +189,7 @@ export function Sidebar({ conteos }: SidebarProps) {
     visibleModules.find(module => module.key === derivedModule.key) ??
     visibleModules[0] ??
     derivedModule;
-  const currentModuleItems = getVisibleModuleItems(currentModule);
+  const currentModuleItems = getVisibleModuleItems(currentModule, user?.rol);
   const systemItems: ModuleNavItem[] =
     user?.rol === UsuarioRol.ADMIN
       ? [

@@ -1069,6 +1069,7 @@ export interface MercadoBootstrapData {
   productos: InventarioProducto[];
   puedeAdministrar: boolean;
   whatsappNumeroConfigurado: boolean;
+  whatsappNumero?: string;
 }
 
 export enum ContableArchivoDocumentoTipo {

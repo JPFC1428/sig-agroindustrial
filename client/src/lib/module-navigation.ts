@@ -1,4 +1,4 @@
-import type { ConteosModulosDashboard } from "./types";
+import { UsuarioRol, type ConteosModulosDashboard } from "./types";
 
 export type AppModuleKey =
   | "comercial"
@@ -14,6 +14,7 @@ export type ModuleNavItem = {
   href: string;
   description: string;
   badgeKey?: keyof ConteosModulosDashboard;
+  allowedRoles?: UsuarioRol[];
   visibleInNavigation?: boolean;
 };
 
@@ -235,6 +236,18 @@ const mercadoAgricolaItems: ModuleNavItem[] = [
     description:
       "Catalogo conectado a inventario para visibilidad comercial y solicitud de cotizaciones.",
   },
+  {
+    id: "mercado-admin",
+    label: "Administracion",
+    href: "/mercado-agricola/admin",
+    description:
+      "Creacion, publicacion y actualizacion de articulos del mercado agricola.",
+    allowedRoles: [
+      UsuarioRol.ADMIN,
+      UsuarioRol.COMERCIAL,
+      UsuarioRol.INVENTARIO,
+    ],
+  },
 ];
 
 export const APP_MODULES: AppModuleDefinition[] = [
@@ -326,12 +339,23 @@ export function getModuleByPath(pathname: string) {
 }
 
 export function getVisibleModuleItems(
-  moduleOrKey: AppModuleDefinition | AppModuleKey
+  moduleOrKey: AppModuleDefinition | AppModuleKey,
+  role?: UsuarioRol
 ) {
   const module =
     typeof moduleOrKey === "string" ? getModuleByKey(moduleOrKey) : moduleOrKey;
 
-  return module.items.filter(item => item.visibleInNavigation !== false);
+  return module.items.filter(item => {
+    if (item.visibleInNavigation === false) {
+      return false;
+    }
+
+    if (!role || !item.allowedRoles) {
+      return true;
+    }
+
+    return item.allowedRoles.includes(role);
+  });
 }
 
 export function getModuleItemByPath(

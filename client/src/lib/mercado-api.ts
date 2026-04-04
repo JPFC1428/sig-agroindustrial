@@ -16,12 +16,30 @@ type MercadoBootstrapDataApiRecord = {
   productos: InventarioProductoApiRecord[];
   puedeAdministrar: boolean;
   whatsappNumeroConfigurado: boolean;
+  whatsappNumero?: string;
 };
 
 export type MercadoProductoUpdateInput = {
+  categoria: string;
   descripcion?: string;
   imagenUrl?: string;
+  marca?: string;
+  nombre: string;
   precio: number;
+  stockActual?: number;
+  tipoDisponibilidad: MercadoDisponibilidadTipo;
+  visibleEnMercado: boolean;
+};
+
+export type MercadoProductoCreateInput = {
+  categoria: string;
+  descripcion?: string;
+  imagenUrl?: string;
+  marca?: string;
+  nombre: string;
+  precio: number;
+  stockInicial?: number;
+  stockActual?: number;
   tipoDisponibilidad: MercadoDisponibilidadTipo;
   visibleEnMercado: boolean;
 };
@@ -87,6 +105,7 @@ export async function getMercadoBootstrapData(): Promise<MercadoBootstrapData> {
     puedeAdministrar: data.puedeAdministrar,
     productos: data.productos.map(toInventarioProducto),
     whatsappNumeroConfigurado: data.whatsappNumeroConfigurado,
+    whatsappNumero: data.whatsappNumero,
   };
 }
 
@@ -116,6 +135,19 @@ export async function getMercadoProductos(params?: {
 export async function getMercadoProductoById(productoId: string) {
   const data = await fetchJson<InventarioProductoApiRecord>(
     `${MERCADO_API_URL}/productos/${productoId}`
+  );
+
+  return toInventarioProducto(data);
+}
+
+export async function createMercadoProducto(payload: MercadoProductoCreateInput) {
+  const data = await fetchJson<InventarioProductoApiRecord>(
+    `${MERCADO_API_URL}/productos`,
+    {
+      body: JSON.stringify(payload),
+      headers: JSON_HEADERS,
+      method: "POST",
+    }
   );
 
   return toInventarioProducto(data);

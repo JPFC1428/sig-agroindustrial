@@ -181,6 +181,7 @@ type InventarioProductoPayload = {
   unidad?: unknown;
   costo?: unknown;
   precio?: unknown;
+  stockActual?: unknown;
   estado?: unknown;
   visibleEnMercado?: unknown;
   tipoDisponibilidad?: unknown;
@@ -287,6 +288,7 @@ type BuiltProducto = {
   unidad: string;
   costo: number;
   precio: number;
+  stockActual: number;
   estado: InventarioProductoEstado;
   visibleEnMercado: boolean;
   tipoDisponibilidad: MercadoDisponibilidadTipo;
@@ -1024,6 +1026,7 @@ function buildProducto(payload: unknown): BuiltProducto {
   const unidad = readString(data.unidad) ?? "";
   const costo = roundMoney(readNumber(data.costo));
   const precio = roundMoney(readNumber(data.precio));
+  const stockActual = roundMoney(readNumber(data.stockActual, 0));
   const estado =
     (readString(data.estado) as InventarioProductoEstado | undefined) ??
     InventarioProductoEstado.ACTIVO;
@@ -1064,6 +1067,10 @@ function buildProducto(payload: unknown): BuiltProducto {
     throw new Error("El precio del producto es invalido");
   }
 
+  if (!Number.isFinite(stockActual) || stockActual < 0) {
+    throw new Error("El stock del producto es invalido");
+  }
+
   if (!PRODUCTO_ESTADOS.has(estado)) {
     throw new Error("El estado del producto es invalido");
   }
@@ -1086,6 +1093,7 @@ function buildProducto(payload: unknown): BuiltProducto {
     unidad,
     costo,
     precio,
+    stockActual,
     estado,
     visibleEnMercado,
     tipoDisponibilidad,
@@ -1095,7 +1103,7 @@ function buildProducto(payload: unknown): BuiltProducto {
   };
 }
 
-async function insertInventarioProducto(payload: unknown) {
+export async function insertInventarioProducto(payload: unknown) {
   const producto = buildProducto(payload);
   const sql = getSql();
 
@@ -1138,7 +1146,7 @@ async function insertInventarioProducto(payload: unknown) {
         ${producto.unidad},
         ${producto.costo},
         ${producto.precio},
-        0,
+        ${producto.stockActual},
         ${producto.estado},
         ${producto.visibleEnMercado},
         ${producto.tipoDisponibilidad},

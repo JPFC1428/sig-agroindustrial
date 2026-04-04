@@ -108,6 +108,14 @@ export function canAccessPath(role: UsuarioRol, pathname: string) {
     return true;
   }
 
+  if (matchesPath(pathname, "/mercado-agricola/admin")) {
+    return (
+      role === UsuarioRol.ADMIN ||
+      role === UsuarioRol.COMERCIAL ||
+      role === UsuarioRol.INVENTARIO
+    );
+  }
+
   if (matchesPath(pathname, "/mercado-agricola")) {
     return true;
   }
