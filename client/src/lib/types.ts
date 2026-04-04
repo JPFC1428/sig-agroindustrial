@@ -943,11 +943,17 @@ export enum InventarioProductoEstado {
   DESCONTINUADO = "descontinuado",
 }
 
+export enum MercadoDisponibilidadTipo {
+  STOCK = "stock",
+  BAJO_PEDIDO = "bajo_pedido",
+}
+
 export interface InventarioProducto {
   id: string;
   tipoItem: InventarioProductoTipoItem;
   codigo: string;
   nombre: string;
+  descripcion?: string;
   categoria: string;
   marca?: string;
   modelo?: string;
@@ -958,6 +964,9 @@ export interface InventarioProducto {
   precio: number;
   stockActual: number;
   estado: InventarioProductoEstado;
+  visibleEnMercado: boolean;
+  tipoDisponibilidad: MercadoDisponibilidadTipo;
+  imagenUrl?: string;
   referenciaExternaTipo?: string;
   referenciaExternaId?: string;
   createdAt: Date;
@@ -1054,6 +1063,12 @@ export interface InventarioDashboardData {
   comprasRecientes: InventarioCompra[];
   entradasRecientes: InventarioEntrada[];
   productosRecientes: InventarioProducto[];
+}
+
+export interface MercadoBootstrapData {
+  productos: InventarioProducto[];
+  puedeAdministrar: boolean;
+  whatsappNumeroConfigurado: boolean;
 }
 
 export enum ContableArchivoDocumentoTipo {
@@ -1306,4 +1321,59 @@ export interface Usuario extends AuthUser {
   createdAt: Date;
   updatedAt: Date;
   ultimoLoginAt?: Date;
+}
+
+export enum ChatMensajeTipo {
+  TEXTO = "texto",
+  ARCHIVO = "archivo",
+  SISTEMA = "sistema",
+}
+
+export interface ChatAvailableUser {
+  id: string;
+  nombre: string;
+  email: string;
+  rol: UsuarioRol;
+  activo: boolean;
+  ultimoLoginAt?: Date;
+}
+
+export interface ChatParticipant {
+  id: string;
+  usuarioId: string;
+  nombre: string;
+  email: string;
+  rol: UsuarioRol;
+  activo: boolean;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversacionId: string;
+  usuarioId: string;
+  usuarioNombre: string;
+  usuarioEmail: string;
+  usuarioRol: UsuarioRol;
+  contenido: string;
+  tipo: ChatMensajeTipo;
+  archivoUrl?: string;
+  creadoEn: Date;
+}
+
+export interface ChatConversationSummary {
+  id: string;
+  creadoEn: Date;
+  participantes: ChatParticipant[];
+  otroUsuario?: ChatParticipant;
+  ultimoMensaje?: ChatMessage;
+  totalMensajes: number;
+}
+
+export interface ChatConversationDetail extends ChatConversationSummary {
+  mensajes: ChatMessage[];
+}
+
+export interface ChatBootstrapData {
+  conversaciones: ChatConversationSummary[];
+  usuarios: ChatAvailableUser[];
 }

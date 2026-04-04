@@ -84,7 +84,9 @@ import {
 } from "./contable-viaticos-api.js";
 import { handleContableArchivoCollection } from "./contable-archivo-api.js";
 import { handleContableReportesCollection } from "./contable-reportes-api.js";
+import { handleChatRoute } from "./chat-api.js";
 import { handleInventarioRoute } from "./inventario-api.js";
+import { handleMercadoRoute } from "./mercado-api.js";
 import { handleUsersCollection } from "./users-api.js";
 
 type CorsConfig = {
@@ -474,6 +476,16 @@ async function requestHandler(req: IncomingMessage, res: ServerResponse) {
 
   if (contableViaticoId) {
     await handleContableViaticoItem(req, res, contableViaticoId);
+    return;
+  }
+
+  if (pathname === "/api/chat" || pathname.startsWith("/api/chat/")) {
+    await handleChatRoute(req, res);
+    return;
+  }
+
+  if (pathname === "/api/mercado" || pathname.startsWith("/api/mercado/")) {
+    await handleMercadoRoute(req, res);
     return;
   }
 

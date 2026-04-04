@@ -7,6 +7,7 @@ import {
   InventarioEntradaOrigenTipo,
   InventarioProductoEstado,
   InventarioProductoTipoItem,
+  MercadoDisponibilidadTipo,
   type ContableTercero,
   type InventarioCompra,
   type InventarioCompraItem,
@@ -91,6 +92,7 @@ type ProductoRow = {
   tipo_item: InventarioProductoTipoItem;
   codigo: string;
   nombre: string;
+  descripcion: string | null;
   categoria: string;
   marca: string | null;
   modelo: string | null;
@@ -101,6 +103,9 @@ type ProductoRow = {
   precio: number | string;
   stock_actual: number | string;
   estado: InventarioProductoEstado;
+  visible_en_mercado: boolean;
+  tipo_disponibilidad: MercadoDisponibilidadTipo;
+  imagen_url: string | null;
   referencia_externa_tipo: string | null;
   referencia_externa_id: string | null;
   created_at: string | Date;
@@ -167,6 +172,7 @@ type InventarioProductoPayload = {
   tipoItem?: unknown;
   codigo?: unknown;
   nombre?: unknown;
+  descripcion?: unknown;
   categoria?: unknown;
   marca?: unknown;
   modelo?: unknown;
@@ -176,6 +182,9 @@ type InventarioProductoPayload = {
   costo?: unknown;
   precio?: unknown;
   estado?: unknown;
+  visibleEnMercado?: unknown;
+  tipoDisponibilidad?: unknown;
+  imagenUrl?: unknown;
   referenciaExternaTipo?: unknown;
   referenciaExternaId?: unknown;
 };
@@ -269,6 +278,7 @@ type BuiltProducto = {
   tipoItem: InventarioProductoTipoItem;
   codigo: string;
   nombre: string;
+  descripcion?: string;
   categoria: string;
   marca?: string;
   modelo?: string;
@@ -278,6 +288,9 @@ type BuiltProducto = {
   costo: number;
   precio: number;
   estado: InventarioProductoEstado;
+  visibleEnMercado: boolean;
+  tipoDisponibilidad: MercadoDisponibilidadTipo;
+  imagenUrl?: string;
   referenciaExternaTipo?: string;
   referenciaExternaId?: string;
 };
@@ -335,6 +348,11 @@ const PRODUCTO_ESTADOS = new Set<InventarioProductoEstado>([
   InventarioProductoEstado.ACTIVO,
   InventarioProductoEstado.INACTIVO,
   InventarioProductoEstado.DESCONTINUADO,
+]);
+
+const MERCADO_DISPONIBILIDADES = new Set<MercadoDisponibilidadTipo>([
+  MercadoDisponibilidadTipo.STOCK,
+  MercadoDisponibilidadTipo.BAJO_PEDIDO,
 ]);
 
 const PROVEEDOR_ESTADOS = new Set<ContableTerceroEstado>([
@@ -586,6 +604,7 @@ function mapProductoRow(row: ProductoRow): InventarioProductoApiRecord {
     tipoItem: row.tipo_item,
     codigo: row.codigo,
     nombre: row.nombre,
+    descripcion: row.descripcion ?? undefined,
     categoria: row.categoria,
     marca: row.marca ?? undefined,
     modelo: row.modelo ?? undefined,
@@ -596,6 +615,9 @@ function mapProductoRow(row: ProductoRow): InventarioProductoApiRecord {
     precio: Number(row.precio),
     stockActual: Number(row.stock_actual),
     estado: row.estado,
+    visibleEnMercado: row.visible_en_mercado,
+    tipoDisponibilidad: row.tipo_disponibilidad,
+    imagenUrl: row.imagen_url ?? undefined,
     referenciaExternaTipo: row.referencia_externa_tipo ?? undefined,
     referenciaExternaId: row.referencia_externa_id ?? undefined,
     createdAt: formatTimestampValue(row.created_at),
@@ -911,6 +933,7 @@ async function listInventarioProductos(
       tipo_item,
       codigo,
       nombre,
+      descripcion,
       categoria,
       marca,
       modelo,
@@ -921,6 +944,9 @@ async function listInventarioProductos(
       precio,
       stock_actual,
       estado,
+      visible_en_mercado,
+      tipo_disponibilidad,
+      imagen_url,
       referencia_externa_tipo,
       referencia_externa_id,
       created_at,
@@ -952,6 +978,7 @@ async function listInventarioProductosByIds(ids: string[]) {
         tipo_item,
         codigo,
         nombre,
+        descripcion,
         categoria,
         marca,
         modelo,
@@ -962,6 +989,9 @@ async function listInventarioProductosByIds(ids: string[]) {
         precio,
         stock_actual,
         estado,
+        visible_en_mercado,
+        tipo_disponibilidad,
+        imagen_url,
         referencia_externa_tipo,
         referencia_externa_id,
         created_at,
@@ -986,6 +1016,7 @@ function buildProducto(payload: unknown): BuiltProducto {
     InventarioProductoTipoItem.PRODUCTO;
   const codigo = readString(data.codigo)?.toUpperCase() ?? "";
   const nombre = readString(data.nombre) ?? "";
+  const descripcion = readOptionalString(data.descripcion);
   const categoria = readString(data.categoria) ?? "";
   const marca = readOptionalString(data.marca);
   const modelo = readOptionalString(data.modelo);
@@ -996,6 +1027,11 @@ function buildProducto(payload: unknown): BuiltProducto {
   const estado =
     (readString(data.estado) as InventarioProductoEstado | undefined) ??
     InventarioProductoEstado.ACTIVO;
+  const visibleEnMercado = readBoolean(data.visibleEnMercado, false);
+  const tipoDisponibilidad =
+    (readString(data.tipoDisponibilidad) as MercadoDisponibilidadTipo | undefined) ??
+    MercadoDisponibilidadTipo.STOCK;
+  const imagenUrl = readOptionalString(data.imagenUrl);
   const referenciaExternaTipo = readOptionalString(data.referenciaExternaTipo);
   const referenciaExternaId = readOptionalString(data.referenciaExternaId);
   const manejaSerial = readBoolean(data.manejaSerial, Boolean(serial));
@@ -1032,11 +1068,16 @@ function buildProducto(payload: unknown): BuiltProducto {
     throw new Error("El estado del producto es invalido");
   }
 
+  if (!MERCADO_DISPONIBILIDADES.has(tipoDisponibilidad)) {
+    throw new Error("La disponibilidad del producto es invalida");
+  }
+
   return {
     id: `prd-${nanoid(8)}`,
     tipoItem,
     codigo,
     nombre,
+    descripcion,
     categoria,
     marca,
     modelo,
@@ -1046,6 +1087,9 @@ function buildProducto(payload: unknown): BuiltProducto {
     costo,
     precio,
     estado,
+    visibleEnMercado,
+    tipoDisponibilidad,
+    imagenUrl,
     referenciaExternaTipo,
     referenciaExternaId,
   };
@@ -1062,6 +1106,7 @@ async function insertInventarioProducto(payload: unknown) {
         tipo_item,
         codigo,
         nombre,
+        descripcion,
         categoria,
         marca,
         modelo,
@@ -1072,6 +1117,9 @@ async function insertInventarioProducto(payload: unknown) {
         precio,
         stock_actual,
         estado,
+        visible_en_mercado,
+        tipo_disponibilidad,
+        imagen_url,
         referencia_externa_tipo,
         referencia_externa_id,
         created_at,
@@ -1081,6 +1129,7 @@ async function insertInventarioProducto(payload: unknown) {
         ${producto.tipoItem},
         ${producto.codigo},
         ${producto.nombre},
+        ${producto.descripcion ?? null},
         ${producto.categoria},
         ${producto.marca ?? null},
         ${producto.modelo ?? null},
@@ -1091,6 +1140,9 @@ async function insertInventarioProducto(payload: unknown) {
         ${producto.precio},
         0,
         ${producto.estado},
+        ${producto.visibleEnMercado},
+        ${producto.tipoDisponibilidad},
+        ${producto.imagenUrl ?? null},
         ${producto.referenciaExternaTipo ?? null},
         ${producto.referenciaExternaId ?? null},
         NOW(),
@@ -1101,6 +1153,7 @@ async function insertInventarioProducto(payload: unknown) {
         tipo_item,
         codigo,
         nombre,
+        descripcion,
         categoria,
         marca,
         modelo,
@@ -1111,6 +1164,9 @@ async function insertInventarioProducto(payload: unknown) {
         precio,
         stock_actual,
         estado,
+        visible_en_mercado,
+        tipo_disponibilidad,
+        imagen_url,
         referencia_externa_tipo,
         referencia_externa_id,
         created_at,

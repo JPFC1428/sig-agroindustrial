@@ -18,9 +18,11 @@ import {
   LayoutDashboard,
   LogOut,
   MapPin,
+  MessageSquare,
   Package,
   ShoppingCart,
   Shield,
+  Store,
   Target,
   Truck,
   Users,
@@ -56,6 +58,10 @@ function getModuleIcon(moduleKey: AppModuleKey) {
       return <Landmark size={18} />;
     case "inventario-compras":
       return <Package size={18} />;
+    case "chat-interno":
+      return <MessageSquare size={18} />;
+    case "mercado-agricola":
+      return <Store size={18} />;
     default:
       return <LayoutDashboard size={18} />;
   }
@@ -113,6 +119,14 @@ function getItemIcon(itemId: string) {
 
   if (itemId.includes("archivo")) {
     return <Archive size={20} />;
+  }
+
+  if (itemId.includes("chat")) {
+    return <MessageSquare size={20} />;
+  }
+
+  if (itemId.includes("mercado")) {
+    return <Store size={20} />;
   }
 
   return <FileText size={20} />;

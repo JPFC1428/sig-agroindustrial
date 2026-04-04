@@ -18,6 +18,14 @@
       "destination": "/api/[[...core]]"
     },
     {
+      "source": "/api/chat/:path*",
+      "destination": "/api/[[...core]]"
+    },
+    {
+      "source": "/api/mercado/:path*",
+      "destination": "/api/[[...core]]"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }

@@ -21,6 +21,7 @@ import {
   type CotizacionMutationInput,
 } from "@/lib/cotizaciones-api";
 import { getClientes } from "@/lib/clientes-api";
+import { getMercadoProductoById } from "@/lib/mercado-api";
 import { CotizacionEstado, type Cliente, type Cotizacion } from "@/lib/types";
 
 type CotizacionLineaForm = {
@@ -81,6 +82,22 @@ function createEmptyLinea(): CotizacionLineaForm {
     cantidad: "1",
     precioUnitario: "0",
     descuento: "0",
+  };
+}
+
+function createLineaFromMercadoProducto(producto: {
+  codigo: string;
+  nombre: string;
+  precio: number;
+  descripcion?: string;
+}) {
+  return {
+    id: `linea-${Math.random().toString(36).slice(2, 10)}`,
+    cantidad: "1",
+    descripcion:
+      producto.descripcion?.trim() || `${producto.codigo} - ${producto.nombre}`,
+    descuento: "0",
+    precioUnitario: String(producto.precio),
   };
 }
 
@@ -262,6 +279,10 @@ export default function CotizacionNueva() {
     typeof window === "undefined"
       ? ""
       : new URLSearchParams(window.location.search).get("clienteId") ?? "";
+  const mercadoProductoIdPreseleccionado =
+    typeof window === "undefined"
+      ? ""
+      : new URLSearchParams(window.location.search).get("mercadoProductoId") ?? "";
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [form, setForm] = useState<CotizacionFormValues>(() =>
     createInitialForm(clienteIdPreseleccionado)
@@ -290,10 +311,15 @@ export default function CotizacionNueva() {
       setCotizacionDisponible(true);
 
       try {
-        const [clientesData, cotizacion] = await Promise.all([
+        const [clientesData, cotizacion, mercadoProducto] = await Promise.all([
           getClientes(),
           esEdicion && cotizacionId
             ? getCotizacionById(cotizacionId)
+            : Promise.resolve(null),
+          !esEdicion && mercadoProductoIdPreseleccionado
+            ? getMercadoProductoById(mercadoProductoIdPreseleccionado).catch(
+                () => null
+              )
             : Promise.resolve(null),
         ]);
 
@@ -315,8 +341,15 @@ export default function CotizacionNueva() {
           const clienteExiste = clientesData.some(
             cliente => cliente.id === clienteIdPreseleccionado
           );
+          const nextForm = createInitialForm(
+            clienteExiste ? clienteIdPreseleccionado : ""
+          );
 
-          setForm(createInitialForm(clienteExiste ? clienteIdPreseleccionado : ""));
+          if (mercadoProducto) {
+            nextForm.lineas = [createLineaFromMercadoProducto(mercadoProducto)];
+          }
+
+          setForm(nextForm);
         }
       } catch (loadError) {
         if (!activo) {
@@ -343,6 +376,7 @@ export default function CotizacionNueva() {
     };
   }, [
     clienteIdPreseleccionado,
+    mercadoProductoIdPreseleccionado,
     cotizacionId,
     esEdicion,
     isEditarRoute,

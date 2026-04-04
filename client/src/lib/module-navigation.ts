@@ -4,7 +4,9 @@ export type AppModuleKey =
   | "comercial"
   | "sertec"
   | "contable"
-  | "inventario-compras";
+  | "inventario-compras"
+  | "chat-interno"
+  | "mercado-agricola";
 
 export type ModuleNavItem = {
   id: string;
@@ -215,6 +217,26 @@ const inventarioComprasItems: ModuleNavItem[] = [
   },
 ];
 
+const chatInternoItems: ModuleNavItem[] = [
+  {
+    id: "chat-conversaciones",
+    label: "Conversaciones",
+    href: "/chat",
+    description:
+      "Mensajeria interna directa entre usuarios con historial y polling simple.",
+  },
+];
+
+const mercadoAgricolaItems: ModuleNavItem[] = [
+  {
+    id: "mercado-catalogo",
+    label: "Catalogo",
+    href: "/mercado-agricola",
+    description:
+      "Catalogo conectado a inventario para visibilidad comercial y solicitud de cotizaciones.",
+  },
+];
+
 export const APP_MODULES: AppModuleDefinition[] = [
   {
     key: "comercial",
@@ -264,6 +286,26 @@ export const APP_MODULES: AppModuleDefinition[] = [
     subtitle: "Modulo Inventario / Compras",
     routePrefixes: ["/inventario-compras"],
     items: inventarioComprasItems,
+  },
+  {
+    key: "chat-interno",
+    label: "Chat Interno",
+    href: "/chat",
+    description:
+      "Comunicacion interna entre usuarios del sistema sin salir de la plataforma.",
+    subtitle: "Modulo Chat Interno",
+    routePrefixes: ["/chat"],
+    items: chatInternoItems,
+  },
+  {
+    key: "mercado-agricola",
+    label: "Mercado Agricola",
+    href: "/mercado-agricola",
+    description:
+      "Catalogo de productos visible para mercado y conectado con cotizaciones.",
+    subtitle: "Modulo Mercado Agricola",
+    routePrefixes: ["/mercado-agricola"],
+    items: mercadoAgricolaItems,
   },
 ];
 

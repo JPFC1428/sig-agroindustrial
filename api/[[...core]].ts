@@ -49,7 +49,9 @@ import {
 } from "../server/contable-viaticos-api.js";
 import { handleContableArchivoCollection } from "../server/contable-archivo-api.js";
 import { handleContableReportesCollection } from "../server/contable-reportes-api.js";
+import { handleChatRoute } from "../server/chat-api.js";
 import { handleInventarioRoute } from "../server/inventario-api.js";
+import { handleMercadoRoute } from "../server/mercado-api.js";
 import { handleUsersCollection } from "../server/users-api.js";
 
 export const config = {
@@ -467,6 +469,36 @@ export default async function handler(
       }
 
       await handleContableViaticoItem(request, response, contableViaticoId);
+      return;
+    }
+
+    if (pathname === "/api/chat" || pathname.startsWith("/api/chat/")) {
+      const authenticatedUser = await requireAuthorizedApiRequest(
+        request,
+        response,
+        pathname
+      );
+
+      if (!authenticatedUser) {
+        return;
+      }
+
+      await handleChatRoute(request, response);
+      return;
+    }
+
+    if (pathname === "/api/mercado" || pathname.startsWith("/api/mercado/")) {
+      const authenticatedUser = await requireAuthorizedApiRequest(
+        request,
+        response,
+        pathname
+      );
+
+      if (!authenticatedUser) {
+        return;
+      }
+
+      await handleMercadoRoute(request, response);
       return;
     }
 

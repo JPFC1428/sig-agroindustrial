@@ -35,6 +35,7 @@ import ContableTerceroNuevo from "./pages/ContableTerceroNuevo";
 import Configuracion from "./pages/Configuracion";
 import ClienteDetalle from "./pages/ClienteDetalle";
 import ClienteNuevo from "./pages/ClienteNuevo";
+import ChatInterno from "./pages/ChatInterno";
 import CotizacionImprimir from "./pages/CotizacionImprimir";
 import CotizacionNueva from "./pages/CotizacionNueva";
 import InventarioCompras from "./pages/InventarioCompras";
@@ -43,6 +44,7 @@ import InventarioEntradas from "./pages/InventarioEntradas";
 import InventarioProductos from "./pages/InventarioProductos";
 import InventarioProveedores from "./pages/InventarioProveedores";
 import Login from "./pages/Login";
+import MercadoAgricola from "./pages/MercadoAgricola";
 import ProspectoDetalle from "./pages/ProspectoDetalle";
 import ProspectoNuevo from "./pages/ProspectoNuevo";
 import Prospectos from "./pages/Prospectos";
@@ -208,6 +210,8 @@ function Router() {
         path={"/inventario-compras/:section"}
         component={InventarioCompras}
       />
+      <ProtectedRoute path={"/chat"} component={ChatInterno} />
+      <ProtectedRoute path={"/mercado-agricola"} component={MercadoAgricola} />
       <ProtectedRoute path={"/configuracion"} component={Configuracion} />
       <ProtectedRoute path={"/usuarios"} component={Usuarios} adminOnly />
       <ProtectedRoute path={"/clientes"} component={Clientes} />

@@ -39,6 +39,14 @@ export function canAccessApiPath(role: ActiveUserRole, pathname: string) {
     return role === "comercial";
   }
 
+  if (matchesPath(pathname, "/api/chat")) {
+    return true;
+  }
+
+  if (matchesPath(pathname, "/api/mercado")) {
+    return true;
+  }
+
   if (
     matchesPath(pathname, "/api/clientes") ||
     matchesPath(pathname, "/api/cotizaciones") ||

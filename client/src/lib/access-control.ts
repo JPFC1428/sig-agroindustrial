@@ -21,6 +21,10 @@ export function canAccessModule(
     return true;
   }
 
+  if (moduleKey === "chat-interno" || moduleKey === "mercado-agricola") {
+    return true;
+  }
+
   switch (role) {
     case UsuarioRol.COMERCIAL:
       return moduleKey === "comercial";
@@ -98,6 +102,14 @@ export function canAccessPath(role: UsuarioRol, pathname: string) {
 
   if (matchesPath(pathname, "/inventario-compras")) {
     return role === UsuarioRol.ADMIN || role === UsuarioRol.INVENTARIO;
+  }
+
+  if (matchesPath(pathname, "/chat")) {
+    return true;
+  }
+
+  if (matchesPath(pathname, "/mercado-agricola")) {
+    return true;
   }
 
   return role === UsuarioRol.ADMIN;

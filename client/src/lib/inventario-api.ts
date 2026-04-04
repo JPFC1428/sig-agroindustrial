@@ -8,6 +8,7 @@ import type {
   InventarioProducto,
   InventarioProductoEstado,
   InventarioProductoTipoItem,
+  MercadoDisponibilidadTipo,
 } from "./types";
 
 type ContableTerceroApiRecord = Omit<
@@ -67,6 +68,7 @@ export type InventarioProductoMutationInput = {
   tipoItem: InventarioProductoTipoItem;
   codigo: string;
   nombre: string;
+  descripcion?: string;
   categoria: string;
   marca?: string;
   modelo?: string;
@@ -76,6 +78,9 @@ export type InventarioProductoMutationInput = {
   costo: number;
   precio: number;
   estado: InventarioProductoEstado;
+  visibleEnMercado?: boolean;
+  tipoDisponibilidad?: MercadoDisponibilidadTipo;
+  imagenUrl?: string;
   referenciaExternaTipo?: string;
   referenciaExternaId?: string;
 };
